@@ -84,8 +84,8 @@ class ASSEMBLED_STACKING_MODEL:
 
         # SECTION train #
 
-        df_imputation_train = self.df_train_feature.drop(['CONC','CD','RDXPO','DISS'],axis='columns')
-        df_imputation_train_extra = self.df_train_feature[['CONC','CD','RDXPO','DISS']]
+        df_imputation_train = self.df_train_feature.drop(['CONC','CD'],axis='columns')
+        df_imputation_train_extra = self.df_train_feature[['CONC','CD']]
 
         df_imputation_train_not_missing = df_imputation_train.iloc[df_imputation_train.index[df_imputation_train['DG'] != 0].tolist()]
         df_imputation_train_missing = df_imputation_train.iloc[df_imputation_train.index[df_imputation_train['DG'] == 0].tolist()]
@@ -98,8 +98,8 @@ class ASSEMBLED_STACKING_MODEL:
 
         # SECTION validation #
 
-        df_imputation_validation = self.df_validation_feature.drop(['CONC','CD','RDXPO','DISS'],axis='columns')
-        df_imputation_validation_extra = self.df_validation_feature[['CONC','CD','RDXPO','DISS']]
+        df_imputation_validation = self.df_validation_feature.drop(['CONC','CD'],axis='columns')
+        df_imputation_validation_extra = self.df_validation_feature[['CONC','CD']]
 
         df_imputation_validation_not_missing = df_imputation_validation.iloc[df_imputation_validation.index[df_imputation_validation['DG'] != 0].tolist()]
         df_imputation_validation_missing = df_imputation_validation.iloc[df_imputation_validation.index[df_imputation_validation['DG'] == 0].tolist()]
@@ -203,7 +203,7 @@ class ASSEMBLED_STACKING_MODEL:
                 random_state=0,
                 learning_rate=0.1,
                 max_depth=None,
-                n_estimators=300
+                n_estimators=500
             )
 
             XGB_model.fit(kfold_train_feature_df,kfold_train_target_df.values.ravel())
@@ -216,7 +216,7 @@ class ASSEMBLED_STACKING_MODEL:
             # SECTION LGBM #
 
             LGBM_model = LGBMRegressor(
-                max_depth=0, 
+                max_depth=10, 
                 random_state=0,
                 n_estimators=800,
                 learning_rate=0.1
@@ -250,7 +250,7 @@ class ASSEMBLED_STACKING_MODEL:
 
             GB_model = GradientBoostingRegressor(
                 random_state=0,
-                min_samples_leaf=2,
+                min_samples_leaf=1,
                 max_depth=3,
                 n_estimators=800,
                 learning_rate=0.3
@@ -295,25 +295,23 @@ class ASSEMBLED_STACKING_MODEL:
 
         # SECTION META model #
 
-        META_model1 = Ridge(
-            alpha=1
-        )
+        PolynomialRegressor = Pipeline([
+        ('poly',PolynomialFeatures(degree=2)),
+        ('linear',LinearRegression(fit_intercept=False))
+        ])
+
+        META_model1 = PolynomialRegressor
 
         META_model1.fit(self.META_train_df,self.df_train_target.values.ravel())
 
-        META_model2 = MLPRegressor(
-            random_state=0,
-            learning_rate_init=0.001,
-            solver='adam',
-            activation='relu',
-            hidden_layer_sizes=(32,64,256,256)
+        META_model2 = Ridge(
+            alpha=1
         )
 
         META_model2.fit(self.META_train_df,self.df_train_target.values.ravel())
 
-        META_model3 = RandomForestRegressor(
-            n_jobs=-1,
-            random_state=0
+        META_model3 = SVR(
+            kernel='linear'
         )
 
         META_model3.fit(self.META_train_df,self.df_train_target.values.ravel())
@@ -332,19 +330,19 @@ class ASSEMBLED_STACKING_MODEL:
                 random_state=0,
                 learning_rate=0.1,
                 max_depth=None,
-                n_estimators=300
-        )
+                n_estimators=500
+            )
 
         self.refit_XGB_model.fit(self.df_train_feature,self.df_train_target.values.ravel())
 
         # SECTION refit LGBM #
 
         self.refit_LGBM_model = LGBMRegressor(
-                max_depth=0, 
+                max_depth=10, 
                 random_state=0,
                 n_estimators=800,
                 learning_rate=0.1
-        )
+            )
 
         self.refit_LGBM_model.fit(self.df_train_feature,self.df_train_target.values.ravel())
 
@@ -356,7 +354,7 @@ class ASSEMBLED_STACKING_MODEL:
                 min_samples_split=2,
                 criterion='absolute_error',
                 n_estimators=1000
-        )
+            )
 
         self.refit_RF_model.fit(self.df_train_feature,self.df_train_target.values.ravel())
 
@@ -364,11 +362,11 @@ class ASSEMBLED_STACKING_MODEL:
 
         self.refit_GB_model = GradientBoostingRegressor(
                 random_state=0,
-                min_samples_leaf=2,
+                min_samples_leaf=1,
                 max_depth=3,
                 n_estimators=800,
                 learning_rate=0.3
-        )
+            )
 
         self.refit_GB_model.fit(self.df_train_feature,self.df_train_target.values.ravel())
 
@@ -379,7 +377,7 @@ class ASSEMBLED_STACKING_MODEL:
                 loss='square',
                 n_estimators=800,
                 learning_rate=1.5
-        )
+            )
 
         self.refit_ADA_model.fit(self.df_train_feature,self.df_train_target.values.ravel())
 

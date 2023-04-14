@@ -123,8 +123,8 @@ class STANDALONE_MODEL:
 
         # SECTION train #
 
-        df_imputation_train = self.df_train_feature.drop(['CONC','CD','RDXPO','DISS'],axis='columns')
-        df_imputation_train_extra = self.df_train_feature[['CONC','CD','RDXPO','DISS']]
+        df_imputation_train = self.df_train_feature.drop(['CONC','CD'],axis='columns')
+        df_imputation_train_extra = self.df_train_feature[['CONC','CD']]
 
         df_imputation_train_not_missing = df_imputation_train.iloc[df_imputation_train.index[df_imputation_train['DG'] != 0].tolist()]
         df_imputation_train_missing = df_imputation_train.iloc[df_imputation_train.index[df_imputation_train['DG'] == 0].tolist()]
@@ -137,8 +137,8 @@ class STANDALONE_MODEL:
 
         # SECTION validation #
 
-        df_imputation_validation = self.df_validation_feature.drop(['CONC','CD','RDXPO','DISS'],axis='columns')
-        df_imputation_validation_extra = self.df_validation_feature[['CONC','CD','RDXPO','DISS']]
+        df_imputation_validation = self.df_validation_feature.drop(['CONC','CD'],axis='columns')
+        df_imputation_validation_extra = self.df_validation_feature[['CONC','CD']]
 
         df_imputation_validation_not_missing = df_imputation_validation.iloc[df_imputation_validation.index[df_imputation_validation['DG'] != 0].tolist()]
         df_imputation_validation_missing = df_imputation_validation.iloc[df_imputation_validation.index[df_imputation_validation['DG'] == 0].tolist()]
